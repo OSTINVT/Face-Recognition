@@ -88,6 +88,16 @@ from sklearn.svm import SVC
 model = SVC(kernel='linear', probability=True)
 model.fit(X_train, Y_train)
 
+
+ypreds_train = model.predict(X_train)
+ypreds_test = model.predict(X_test)
+
+from sklearn.metrics import accuracy_score
+
+accuracy_score(Y_train, ypreds_train)
+
+accuracy_score(Y_test,ypreds_test)
+
 #save the model
 import pickle
 with open('svm_model_celebritiestest_160x160.pkl','wb') as f:
