@@ -68,7 +68,7 @@ EMBEDDED_X = np.asarray(EMBEDDED_X)
 
 # Saving Face Embeddings
 
-np.savez_compressed('faces_embeddings_celebritiestest.npz', EMBEDDED_X, Y)
+np.savez_compressed('faces_embeddings_celebrities.npz', EMBEDDED_X, Y)
 
 # Label Encoding
 
@@ -100,5 +100,5 @@ accuracy_score(Y_test,ypreds_test)
 
 #save the model
 import pickle
-with open('svm_model_celebritiestest_160x160.pkl','wb') as f:
+with open('svm_model_celebrities_160x160.pkl','wb') as f:
     pickle.dump(model,f)
