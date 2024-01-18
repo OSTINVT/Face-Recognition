@@ -5,6 +5,8 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 from mtcnn.mtcnn import MTCNN
 
+import pyttsx3
+
 from sklearn.preprocessing import LabelEncoder
 import pickle
 from keras_facenet import FaceNet
@@ -100,7 +102,7 @@ def create_model():
 
 
 
-create_model()
+# create_model()
 
 #Deployment
 # Initialize FaceNet
@@ -117,9 +119,13 @@ mtcnn_model = MTCNN()
 model = pickle.load(open("svm_model_celebrities_160x160.pkl", 'rb'))
 
 # Inside the identity_check function
+previous_face_name = None  # Initialize to None at the beginning
+unknown_face_welcome_given = False  # Flag to track if welcome message has been given for unknown face
 
 
 def identity_check(embedding, threshold=0.5):
+    global previous_face_name, unknown_face_welcome_given  # Use global variables
+
     embedding = np.array(embedding)
     probabilities = model.predict_proba(embedding.reshape(1, -1))[0]
     max_prob_index = np.argmax(probabilities)
@@ -131,13 +137,32 @@ def identity_check(embedding, threshold=0.5):
         predicted_label_array = np.array([predicted_label])
         decoded_label = encoder.inverse_transform(predicted_label_array)
         print("Decoded Label:", decoded_label)
+
+        if decoded_label[0] != "unknown" and decoded_label[0] != previous_face_name:
+            welcome_message = f"Welcome to my world, {decoded_label[0]}"
+            engine = pyttsx3.init()
+            engine.say(welcome_message)
+            engine.runAndWait()
+            previous_face_name = decoded_label[0]  # Update the previous face name
+            unknown_face_welcome_given = False  # Reset the flag for unknown face
+
         return decoded_label[0]
     else:
+        if not unknown_face_welcome_given:
+            welcome_message = "Welcome to my world"
+            engine = pyttsx3.init()
+            engine.say(welcome_message)
+            engine.runAndWait()
+            unknown_face_welcome_given = True  # Set the flag to indicate welcome message has been given
+
         return "unknown"
 
 
 # Capture from webcam
 cap = cv.VideoCapture(0)
+
+
+
 
 # WHILE LOOP
 while cap.isOpened():
@@ -152,6 +177,8 @@ while cap.isOpened():
         ypred = facenet.embeddings(img)
         face_name = identity_check(ypred)
         print("Predicted Name:", face_name)  # Add this line
+
+
         cv.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 255), 10)
         cv.putText(frame, str(face_name), (x, y - 10), cv.FONT_HERSHEY_SIMPLEX,
                    1, (0, 0, 255), 3, cv.LINE_AA)
